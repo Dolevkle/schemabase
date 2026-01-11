@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { Effect } from "effect";
 
 import type { JsonSchema } from "../src/schema/types";
 
@@ -22,9 +23,11 @@ describe("PostgresEmitter", () => {
       type: "object",
     };
 
-    const ir = compileJsonSchemaToIR(schema, { file: "inline" });
+    const ir = Effect.runSync(
+      compileJsonSchemaToIR(schema, { file: "inline" })
+    );
     const plan = buildPlan(ir);
-    const sql = PostgresEmitter.emit(plan);
+    const sql = Effect.runSync(PostgresEmitter.emit(plan));
     expect(sql).toContain("CREATE TABLE users");
     expect(sql).toContain("id UUID NOT NULL PRIMARY KEY");
     expect(sql).toContain(

@@ -1,3 +1,5 @@
+import { Effect } from "effect";
+
 import type {
   Column,
   Index,
@@ -78,11 +80,16 @@ export interface CompileOptions {
   file: string;
 }
 
-const compileTable = (schema: JsonSchema, opts: CompileOptions): Table => {
+const compileTable = (
+  schema: JsonSchema,
+  opts: CompileOptions
+): Effect.Effect<Table, CompileError> => {
   const t = schemaType(schema);
   if (t !== "object") {
-    throw new CompileError(
-      `Top-level schema must be an object (got ${t ?? "unknown"})`
+    return Effect.fail(
+      new CompileError(
+        `Top-level schema must be an object (got ${t ?? "unknown"})`
+      )
     );
   }
 
@@ -110,25 +117,25 @@ const compileTable = (schema: JsonSchema, opts: CompileOptions): Table => {
   }
 
   if (columns.length === 0) {
-    throw new CompileError("Schema has no properties to infer columns from.");
+    return Effect.fail(
+      new CompileError("Schema has no properties to infer columns from.")
+    );
   }
 
-  return {
+  return Effect.succeed({
     columns,
     indexes: inferIndexes(tableName, schema),
     name: tableName,
     provenance: { file: opts.file, pointer: "/" },
-  };
+  });
 };
 
 export const compileJsonSchemaToIR = (
   schema: JsonSchema,
   opts: CompileOptions
-): RelationalIR => {
-  const table = compileTable(schema, opts);
-  return {
+): Effect.Effect<RelationalIR, CompileError> =>
+  Effect.map(compileTable(schema, opts), (table) => ({
     enums: [],
     foreignKeys: [],
     tables: [table],
-  };
-};
+  }));

@@ -1,6 +1,9 @@
+import { Effect } from "effect";
+
 import type { Column } from "../ir/types";
 import type { MigrationPlan, Operation } from "../plan/types";
-import type { SqlEmitter } from "./types";
+
+import { EmitError, type SqlEmitter } from "./types";
 
 const pgType = (col: Column): string => {
   switch (col.type) {
@@ -25,7 +28,7 @@ const pgType = (col: Column): string => {
   }
 };
 
-const emitOp = (op: Operation): string => {
+const emitOp = (op: Operation): Effect.Effect<string, EmitError> => {
   switch (op.type) {
     case "CreateTable": {
       const lines = op.columns.map((c) => {
@@ -38,23 +41,32 @@ const emitOp = (op: Operation): string => {
         }
         return `  ${parts.join(" ")}`;
       });
-      return `CREATE TABLE ${op.table} (\n${lines.join(",\n")}\n);`;
+      return Effect.succeed(
+        `CREATE TABLE ${op.table} (\n${lines.join(",\n")}\n);`
+      );
     }
     case "CreateIndex": {
       const unique = op.index.unique ? "UNIQUE " : "";
       const cols = op.index.columns.join(", ");
-      return `CREATE ${unique}INDEX ${op.index.name} ON ${op.index.table} (${cols});`;
+      return Effect.succeed(
+        `CREATE ${unique}INDEX ${op.index.name} ON ${op.index.table} (${cols});`
+      );
     }
     default: {
       // Should be unreachable if Operation is exhaustive; keeps lint happy.
-      throw new Error(`Unsupported operation: ${(op as Operation).type}`);
+      return Effect.fail(
+        new EmitError(`Unsupported operation: ${(op as Operation).type}`)
+      );
     }
   }
 };
 
 export const PostgresEmitter: SqlEmitter = {
   dialect: "postgres",
-  emit(plan: MigrationPlan): string {
-    return `${plan.operations.map(emitOp).join("\n\n")}\n`;
+  emit(plan: MigrationPlan): Effect.Effect<string, EmitError> {
+    return Effect.map(
+      Effect.all(plan.operations.map(emitOp)),
+      (statements) => `${statements.join("\n\n")}\n`
+    );
   },
 };
