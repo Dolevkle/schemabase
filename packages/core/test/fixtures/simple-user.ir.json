@@ -1,0 +1,20 @@
+{
+  "tables": [
+    {
+      "name": "users",
+      "columns": [
+        { "name": "id", "type": "uuid", "nullable": false, "primaryKey": true },
+        { "name": "email", "type": "text", "nullable": false },
+        { "name": "name", "type": "text", "nullable": true },
+        { "name": "created_at", "type": "timestamptz", "nullable": true }
+      ],
+      "indexes": [
+        { "name": "users_email_uidx", "table": "users", "columns": ["email"], "unique": true }
+      ],
+      "provenance": { "file": "simple-user.json", "pointer": "/" }
+    }
+  ],
+  "foreignKeys": [],
+  "enums": []
+}
+
