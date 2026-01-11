@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { Effect } from "effect";
 
 import type { RelationalIR } from "../src/ir/types";
 import type { JsonSchema } from "../src/schema/types";
@@ -16,7 +17,9 @@ const readJson = async (rel: string) => {
 describe("compileJsonSchemaToIR", () => {
   test("simple user schema -> IR", async () => {
     const schema = (await readJson("simple-user.json")) as JsonSchema;
-    const ir = compileJsonSchemaToIR(schema, { file: "simple-user.json" });
+    const ir = Effect.runSync(
+      compileJsonSchemaToIR(schema, { file: "simple-user.json" })
+    );
     const expected = (await readJson("simple-user.ir.json")) as RelationalIR;
     expect(ir).toEqual(expected);
   });

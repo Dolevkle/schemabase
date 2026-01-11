@@ -19,7 +19,7 @@ export interface GenerateProps {
 const makeGenerateEffect = (schemaPath: string, format: GenerateFormat) =>
   Effect.gen(function* makeGenerateEffect() {
     const schema = yield* loadJsonSchemaFile(schemaPath);
-    const ir = compileJsonSchemaToIR(schema, { file: schemaPath });
+    const ir = yield* compileJsonSchemaToIR(schema, { file: schemaPath });
     if (format === "ir") {
       return `${JSON.stringify(ir, null, 2)}\n`;
     }
@@ -29,7 +29,7 @@ const makeGenerateEffect = (schemaPath: string, format: GenerateFormat) =>
       return `${JSON.stringify(plan, null, 2)}\n`;
     }
 
-    return PostgresEmitter.emit(plan);
+    return yield* PostgresEmitter.emit(plan);
   });
 
 export const generateText = async (

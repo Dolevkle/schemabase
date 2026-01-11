@@ -22,5 +22,5 @@ export {
 export { buildPlan } from "./plan/builder";
 export type { MigrationPlan, Operation } from "./plan/types";
 
-export type { SqlEmitter } from "./emitters/types";
+export { EmitError, type SqlEmitter } from "./emitters/types";
 export { PostgresEmitter } from "./emitters/postgres";
