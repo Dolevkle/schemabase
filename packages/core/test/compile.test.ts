@@ -1,15 +1,17 @@
 import { describe, expect, test } from "bun:test";
-import { compileJsonSchemaToIR } from "../src/compile/compile";
-import type { JsonSchema } from "../src/schema/types";
+
 import type { RelationalIR } from "../src/ir/types";
+import type { JsonSchema } from "../src/schema/types";
+
+import { compileJsonSchemaToIR } from "../src/compile/compile";
 
 const fixtureDir = new URL("./fixtures/", import.meta.url);
 
-async function readJson(rel: string) {
+const readJson = async (rel: string) => {
   const path = new URL(rel, fixtureDir);
   const text = await Bun.file(path).text();
   return JSON.parse(text) as unknown;
-}
+};
 
 describe("compileJsonSchemaToIR", () => {
   test("simple user schema -> IR", async () => {
@@ -19,4 +21,3 @@ describe("compileJsonSchemaToIR", () => {
     expect(ir).toEqual(expected);
   });
 });
-

@@ -230,17 +230,19 @@ jobs:
 
 ```json
 {
-  "tables": [{
-    "name": "users",
-    "columns": [
-      { "name": "id", "type": "uuid", "nullable": false, "primaryKey": true },
-      { "name": "email", "type": "text", "nullable": false },
-      { "name": "name", "type": "text", "nullable": true },
-      { "name": "created_at", "type": "timestamptz", "nullable": true }
-    ],
-    "indexes": [],
-    "provenance": { "file": "simple-user.json", "pointer": "/" }
-  }],
+  "tables": [
+    {
+      "name": "users",
+      "columns": [
+        { "name": "id", "type": "uuid", "nullable": false, "primaryKey": true },
+        { "name": "email", "type": "text", "nullable": false },
+        { "name": "name", "type": "text", "nullable": true },
+        { "name": "created_at", "type": "timestamptz", "nullable": true }
+      ],
+      "indexes": [],
+      "provenance": { "file": "simple-user.json", "pointer": "/" }
+    }
+  ],
   "foreignKeys": [],
   "enums": []
 }

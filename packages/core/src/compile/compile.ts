@@ -1,88 +1,111 @@
+import type {
+  Column,
+  Index,
+  RelationalIR,
+  ScalarType,
+  Table,
+} from "../ir/types";
 import type { JsonSchema } from "../schema/types";
-import type { Column, Index, RelationalIR, ScalarType, Table } from "../ir/types";
+
 import { defaultTableNameFromIdOrTitle, toSnakeCase } from "./naming";
 
 export class CompileError extends Error {
   override name = "CompileError";
 }
 
-function schemaType(schema: JsonSchema): string | undefined {
+const schemaType = (schema: JsonSchema): string | undefined => {
   const t = schema.type;
-  if (!t) return undefined;
+  if (!t) {
+    return undefined;
+  }
   return Array.isArray(t) ? t[0] : t;
-}
+};
 
-function inferScalarType(schema: JsonSchema): ScalarType {
-  const t = schemaType(schema);
-  if (t === "string") {
-    if (schema.enum && Array.isArray(schema.enum) && schema.enum.every((v) => typeof v === "string")) {
+const scalarTypeFromString = (format: string | undefined): ScalarType => {
+  switch (format) {
+    case "uuid": {
+      return "uuid";
+    }
+    case "date-time": {
+      return "timestamptz";
+    }
+    default: {
       return "text";
     }
-    switch (schema.format) {
-      case "uuid":
-        return "uuid";
-      case "date-time":
-        return "timestamptz";
-      case "email":
-        return "text";
-      default:
-        return "text";
-    }
   }
-  if (t === "integer") return "int4";
-  if (t === "number") return "float8";
-  if (t === "boolean") return "bool";
-  return "text";
-}
+};
 
-function inferIndexes(tableName: string, schema: JsonSchema): Index[] {
+const inferScalarType = (schema: JsonSchema): ScalarType => {
+  const t = schemaType(schema);
+  if (t === "string") {
+    return scalarTypeFromString(schema.format);
+  }
+  if (t === "integer") {
+    return "int4";
+  }
+  if (t === "number") {
+    return "float8";
+  }
+  if (t === "boolean") {
+    return "bool";
+  }
+  return "text";
+};
+
+const inferIndexes = (tableName: string, schema: JsonSchema): Index[] => {
   const props = schema.properties ?? {};
   const indexes: Index[] = [];
   for (const [propName, propSchema] of Object.entries(props)) {
     const ext = propSchema["x-schemabase"];
-    if (!ext || typeof ext !== "object") continue;
-    const unique = Boolean((ext as any).unique);
-    const index = Boolean((ext as any).index);
-    if (!unique && !index) continue;
+    const unique = ext?.unique === true;
+    const index = ext?.index === true;
+    if (!unique && !index) {
+      continue;
+    }
 
     const col = toSnakeCase(propName);
     indexes.push({
+      columns: [col],
       name: `${tableName}_${col}_${unique ? "uidx" : "idx"}`,
       table: tableName,
-      columns: [col],
-      unique
+      unique,
     });
   }
   return indexes;
-}
-
-export type CompileOptions = {
-  file: string;
 };
 
-export function compileJsonSchemaToIR(schema: JsonSchema, opts: CompileOptions): RelationalIR {
+export interface CompileOptions {
+  file: string;
+}
+
+const compileTable = (schema: JsonSchema, opts: CompileOptions): Table => {
   const t = schemaType(schema);
   if (t !== "object") {
-    throw new CompileError(`Top-level schema must be an object (got ${t ?? "unknown"})`);
+    throw new CompileError(
+      `Top-level schema must be an object (got ${t ?? "unknown"})`
+    );
   }
 
   const explicit = schema["x-schemabase"]?.table;
   const nameSource = explicit ?? schema.$id ?? schema.title ?? "schema";
   const tableName = defaultTableNameFromIdOrTitle(nameSource);
 
-  const required = new Set(schema.required ?? []);
+  const required = schema.required
+    ? new Set(schema.required)
+    : new Set<string>();
   const properties = schema.properties ?? {};
 
   const columns: Column[] = [];
   for (const [propName, propSchema] of Object.entries(properties)) {
-    const columnName = propSchema["x-schemabase"]?.column ?? toSnakeCase(propName);
+    const columnName =
+      propSchema["x-schemabase"]?.column ?? toSnakeCase(propName);
     const nullable = !required.has(propName);
     const primaryKey = propName === "id" && !nullable;
     columns.push({
       name: columnName,
-      type: inferScalarType(propSchema),
       nullable,
-      ...(primaryKey ? { primaryKey: true } : {})
+      ...(primaryKey ? { primaryKey: true } : {}),
+      type: inferScalarType(propSchema),
     });
   }
 
@@ -90,17 +113,22 @@ export function compileJsonSchemaToIR(schema: JsonSchema, opts: CompileOptions):
     throw new CompileError("Schema has no properties to infer columns from.");
   }
 
-  const table: Table = {
-    name: tableName,
+  return {
     columns,
     indexes: inferIndexes(tableName, schema),
-    provenance: { file: opts.file, pointer: "/" }
+    name: tableName,
+    provenance: { file: opts.file, pointer: "/" },
   };
+};
 
+export const compileJsonSchemaToIR = (
+  schema: JsonSchema,
+  opts: CompileOptions
+): RelationalIR => {
+  const table = compileTable(schema, opts);
   return {
-    tables: [table],
+    enums: [],
     foreignKeys: [],
-    enums: []
+    tables: [table],
   };
-}
-
+};

@@ -1,19 +1,18 @@
 import type { Column, Index } from "../ir/types";
 
-export type CreateTableOp = {
+export interface CreateTableOp {
   type: "CreateTable";
   table: string;
   columns: Column[];
-};
+}
 
-export type CreateIndexOp = {
+export interface CreateIndexOp {
   type: "CreateIndex";
   index: Index;
-};
+}
 
 export type Operation = CreateTableOp | CreateIndexOp;
 
-export type MigrationPlan = {
+export interface MigrationPlan {
   operations: Operation[];
-};
-
+}

@@ -9,7 +9,12 @@
         { "name": "created_at", "type": "timestamptz", "nullable": true }
       ],
       "indexes": [
-        { "name": "users_email_uidx", "table": "users", "columns": ["email"], "unique": true }
+        {
+          "name": "users_email_uidx",
+          "table": "users",
+          "columns": ["email"],
+          "unique": true
+        }
       ],
       "provenance": { "file": "simple-user.json", "pointer": "/" }
     }
@@ -17,4 +22,3 @@
   "foreignKeys": [],
   "enums": []
 }
-

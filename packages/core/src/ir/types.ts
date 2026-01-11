@@ -6,26 +6,26 @@ export type ScalarType =
   | "bool"
   | "timestamptz";
 
-export type Provenance = {
+export interface Provenance {
   file: string;
   pointer: string;
-};
+}
 
-export type Column = {
+export interface Column {
   name: string;
   type: ScalarType;
   nullable: boolean;
   primaryKey?: boolean;
-};
+}
 
-export type Index = {
+export interface Index {
   name: string;
   table: string;
   columns: string[];
   unique: boolean;
-};
+}
 
-export type ForeignKey = {
+export interface ForeignKey {
   name: string;
   table: string;
   columns: string[];
@@ -33,24 +33,23 @@ export type ForeignKey = {
   referencedColumns: string[];
   onDelete?: "cascade" | "restrict" | "set null" | "no action";
   onUpdate?: "cascade" | "restrict" | "set null" | "no action";
-};
+}
 
-export type Table = {
+export interface Table {
   name: string;
   columns: Column[];
   indexes: Index[];
   provenance: Provenance;
-};
+}
 
-export type EnumType = {
+export interface EnumType {
   name: string;
   values: string[];
   provenance: Provenance;
-};
+}
 
-export type RelationalIR = {
+export interface RelationalIR {
   tables: Table[];
   foreignKeys: ForeignKey[];
   enums: EnumType[];
-};
-
+}

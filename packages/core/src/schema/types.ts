@@ -1,4 +1,4 @@
-export type JsonSchema = {
+export interface JsonSchema {
   $id?: string;
   title?: string;
   description?: string;
@@ -19,5 +19,4 @@ export type JsonSchema = {
     column?: string;
   };
   [key: string]: unknown;
-};
-
+}

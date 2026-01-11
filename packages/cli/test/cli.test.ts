@@ -3,8 +3,13 @@ import { describe, expect, test } from "bun:test";
 describe("schemabase CLI", () => {
   test("generate outputs SQL by default", async () => {
     const proc = Bun.spawn(
-      ["bun", "packages/cli/src/main.tsx", "generate", "packages/core/test/fixtures/simple-user.json"],
-      { stdout: "pipe", stderr: "pipe" }
+      [
+        "bun",
+        "packages/cli/src/main.tsx",
+        "generate",
+        "packages/core/test/fixtures/simple-user.json",
+      ],
+      { stderr: "pipe", stdout: "pipe" }
     );
     const out = await new Response(proc.stdout).text();
     const err = await new Response(proc.stderr).text();
@@ -23,9 +28,9 @@ describe("schemabase CLI", () => {
         "generate",
         "packages/core/test/fixtures/simple-user.json",
         "--format",
-        "ir"
+        "ir",
       ],
-      { stdout: "pipe", stderr: "pipe" }
+      { stderr: "pipe", stdout: "pipe" }
     );
     const out = await new Response(proc.stdout).text();
     const err = await new Response(proc.stderr).text();
@@ -33,8 +38,7 @@ describe("schemabase CLI", () => {
 
     expect(err).toBe("");
     expect(code).toBe(0);
-    expect(out).toContain("\"tables\"");
-    expect(out).toContain("\"users\"");
+    expect(out).toContain('"tables"');
+    expect(out).toContain('"users"');
   });
 });
-

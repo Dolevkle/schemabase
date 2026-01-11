@@ -2,10 +2,10 @@
   "name": "@schemabase/cli",
   "version": "0.0.0",
   "private": true,
-  "type": "module",
   "bin": {
     "schemabase": "./src/main.tsx"
   },
+  "type": "module",
   "dependencies": {
     "@schemabase/core": "workspace:*",
     "effect": "^3.19.14",
