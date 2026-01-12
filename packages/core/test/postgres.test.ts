@@ -4,10 +4,9 @@ import type { JsonSchema } from "../src/schema/types";
 
 import { compileJsonSchemaToIR } from "../src/compile/compile";
 import { PostgresEmitter } from "../src/emitters/postgres";
-import { buildPlan } from "../src/plan/builder";
 
 describe("PostgresEmitter", () => {
-  test("emits SQL for simple schema", () => {
+  test("emits SQL for simple schema", async () => {
     const schema: JsonSchema = {
       $id: "User",
       properties: {
@@ -22,9 +21,8 @@ describe("PostgresEmitter", () => {
       type: "object",
     };
 
-    const ir = compileJsonSchemaToIR(schema, { file: "inline" });
-    const plan = buildPlan(ir);
-    const sql = PostgresEmitter.emit(plan);
+    const ir = await compileJsonSchemaToIR(schema, { file: "inline" });
+    const sql = PostgresEmitter.emit(ir);
     expect(sql).toContain("CREATE TABLE users");
     expect(sql).toContain("id UUID NOT NULL PRIMARY KEY");
     expect(sql).toContain(

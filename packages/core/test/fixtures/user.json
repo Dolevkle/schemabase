@@ -1,0 +1,8 @@
+{
+  "$id": "User",
+  "type": "object",
+  "properties": {
+    "id": { "type": "string", "format": "uuid" }
+  },
+  "required": ["id"]
+}

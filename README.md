@@ -63,12 +63,27 @@ CREATE UNIQUE INDEX users_email_uidx ON users (email);
 ## CLI Usage
 
 ```bash
-schemabase generate <schema.json> [--format sql|ir|plan]
+schemabase generate <path> [--format sql|ir] [--db postgres] [--out file]
 ```
 
-| Option     | Values              | Default |
-| ---------- | ------------------- | ------- |
-| `--format` | `sql`, `ir`, `plan` | `sql`   |
+| Option     | Values      | Default |
+| ---------- | ----------- | ------- |
+| `--format` | `sql`, `ir` | `sql`   |
+| `--out`    | file path   | stdout  |
+
+`<path>` can be a single schema file or a directory containing `.json` schema files.
+
+## Relationships
+
+- **Cross-file `$ref`**: treated as a foreign key referencing the target table's primary key.
+  - Example: `"authorId": { "$ref": "./user.json" }` becomes `author_id` referencing `users(id)`.
+  - Custom PKs are supported: if `user.json` has `"x-schemabase": { "primaryKey": ["code"] }`, the FK references `users(code)`.
+- **1:1**: add `"x-schemabase": { "unique": true }` on the `$ref` property.
+- **N:M**: create an explicit junction schema and set `"x-schemabase": { "primaryKey": ["userId","tagId"] }`.
+
+## Nested objects
+
+Nested `object` / `array` properties are stored as `JSONB` in Postgres.
 
 ## Type Mapping
 
@@ -94,12 +109,13 @@ Use `x-schemabase` to configure database-specific features:
 }
 ```
 
-| Extension | Description                   |
-| --------- | ----------------------------- |
-| `unique`  | Create unique index           |
-| `index`   | Create non-unique index       |
-| `column`  | Override column name          |
-| `table`   | Override table name (on root) |
+| Extension    | Description                   |
+| ------------ | ----------------------------- |
+| `unique`     | Create unique index           |
+| `index`      | Create non-unique index       |
+| `column`     | Override column name          |
+| `table`      | Override table name (on root) |
+| `primaryKey` | Composite primary key (root)  |
 
 ## Packages
 

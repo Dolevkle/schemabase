@@ -1,0 +1,9 @@
+{
+  "$id": "Post",
+  "type": "object",
+  "properties": {
+    "id": { "type": "string", "format": "uuid" },
+    "authorId": { "$ref": "./user.json" }
+  },
+  "required": ["id", "authorId"]
+}

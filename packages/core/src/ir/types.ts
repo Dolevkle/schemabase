@@ -1,19 +1,25 @@
-export type ScalarType =
-  | "uuid"
-  | "text"
-  | "int4"
-  | "float8"
-  | "bool"
-  | "timestamptz";
-
 export interface Provenance {
   file: string;
   pointer: string;
 }
 
+export type JsonScalarType = "string" | "integer" | "number" | "boolean";
+export type JsonType = JsonScalarType | "object" | "array";
+
+export interface ColumnType {
+  jsonType: JsonType;
+  format?: string;
+  enum?: string[];
+  /**
+   * For cross-file refs (FKs), this is the raw $ref string (e.g. "./user.json").
+   * For local refs, resolver inlines the schema and removes $ref.
+   */
+  ref?: string;
+}
+
 export interface Column {
   name: string;
-  type: ScalarType;
+  type: ColumnType;
   nullable: boolean;
   primaryKey?: boolean;
 }
@@ -39,6 +45,11 @@ export interface Table {
   name: string;
   columns: Column[];
   indexes: Index[];
+  /**
+   * Optional composite primary key. When present, emit as a table-level
+   * PRIMARY KEY (a, b, ...).
+   */
+  primaryKey?: { columns: string[] };
   provenance: Provenance;
 }
 
