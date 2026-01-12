@@ -17,11 +17,9 @@ export const loadJsonSchemaFile = (
 
     const json = JSON.parse(text) as unknown;
     if (!json || typeof json !== "object") {
-      return yield* Effect.fail(
-        new SchemaLoadError({
-          message: `Schema file is not an object: ${path}`,
-        })
-      );
+      return yield* new SchemaLoadError({
+        message: `Schema file is not an object: ${path}`,
+      });
     }
 
     return json as JsonSchema;
