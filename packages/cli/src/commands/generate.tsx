@@ -4,8 +4,6 @@ import {
   loadJsonSchemaFile,
   PostgresEmitter,
 } from "@schemabase/core";
-import { Text, useApp } from "ink";
-import { useEffect, useState } from "react";
 
 export type GenerateFormat = "sql" | "ir";
 
@@ -66,33 +64,3 @@ export const generateText = (
   schemaPath: string,
   format: GenerateFormat
 ): Promise<string> => generateOutput(schemaPath, format);
-
-export const Generate = ({ schemaPath, format }: GenerateProps) => {
-  const { exit } = useApp();
-  const [output, setOutput] = useState<string>("");
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const text = await generateText(schemaPath, format);
-        if (cancelled) {
-          return;
-        }
-        setOutput(text);
-        exit();
-      } catch (error) {
-        if (cancelled) {
-          return;
-        }
-        setOutput(`Error: ${String(error)}\n`);
-        exit(new Error(String(error)));
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [schemaPath, format, exit]);
-
-  return <Text>{output}</Text>;
-};
