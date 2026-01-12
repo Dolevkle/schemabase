@@ -6,8 +6,5 @@
   "main": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts"
-  },
-  "dependencies": {
-    "effect": "^3.19.14"
   }
 }

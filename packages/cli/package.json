@@ -11,7 +11,6 @@
   },
   "dependencies": {
     "@schemabase/core": "workspace:*",
-    "effect": "^3.19.14",
     "ink": "^6.6.0",
     "react": "^19.2.3",
     "react-devtools-core": "^6.1.2",

@@ -17,33 +17,27 @@ import {
   buildPlan,
   PostgresEmitter,
 } from "@schemabase/core";
-import { Effect } from "effect";
 
 // Load and compile a schema
-const program = Effect.gen(function* () {
-  const schema = yield* loadJsonSchemaFile("./user.json");
-  const ir = compileJsonSchemaToIR(schema, { file: "./user.json" });
-  const plan = buildPlan(ir);
-  const sql = PostgresEmitter.emit(plan);
-  console.log(sql);
-});
-
-Effect.runPromise(program);
+const schema = await loadJsonSchemaFile("./user.json");
+const ir = compileJsonSchemaToIR(schema, { file: "./user.json" });
+const plan = buildPlan(ir);
+const sql = PostgresEmitter.emit(plan);
+console.log(sql);
 ```
 
 ## API
 
 ### Schema Loading
 
-#### `loadJsonSchemaFile(path: string): Effect<JsonSchema, SchemaLoadError>`
+#### `loadJsonSchemaFile(path: string): Promise<JsonSchema>`
 
 Loads and parses a JSON Schema file from disk.
 
 ```typescript
 import { loadJsonSchemaFile } from "@schemabase/core";
-import { Effect } from "effect";
 
-const schema = await Effect.runPromise(loadJsonSchemaFile("./schema.json"));
+const schema = await loadJsonSchemaFile("./schema.json");
 ```
 
 ### Compilation

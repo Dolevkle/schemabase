@@ -4,7 +4,6 @@ import {
   loadJsonSchemaFile,
   PostgresEmitter,
 } from "@schemabase/core";
-import { Effect } from "effect";
 import { Text, useApp } from "ink";
 import { useEffect, useState } from "react";
 
@@ -16,27 +15,28 @@ export interface GenerateProps {
   db: "postgres";
 }
 
-const makeGenerateEffect = (schemaPath: string, format: GenerateFormat) =>
-  Effect.gen(function* makeGenerateEffect() {
-    const schema = yield* loadJsonSchemaFile(schemaPath);
-    const ir = yield* compileJsonSchemaToIR(schema, { file: schemaPath });
-    if (format === "ir") {
-      return `${JSON.stringify(ir, null, 2)}\n`;
-    }
-
-    const plan = buildPlan(ir);
-    if (format === "plan") {
-      return `${JSON.stringify(plan, null, 2)}\n`;
-    }
-
-    return yield* PostgresEmitter.emit(plan);
-  });
-
-export const generateText = async (
+const generateOutput = async (
   schemaPath: string,
   format: GenerateFormat
-): Promise<string> =>
-  await Effect.runPromise(makeGenerateEffect(schemaPath, format));
+): Promise<string> => {
+  const schema = await loadJsonSchemaFile(schemaPath);
+  const ir = compileJsonSchemaToIR(schema, { file: schemaPath });
+  if (format === "ir") {
+    return `${JSON.stringify(ir, null, 2)}\n`;
+  }
+
+  const plan = buildPlan(ir);
+  if (format === "plan") {
+    return `${JSON.stringify(plan, null, 2)}\n`;
+  }
+
+  return PostgresEmitter.emit(plan);
+};
+
+export const generateText = (
+  schemaPath: string,
+  format: GenerateFormat
+): Promise<string> => generateOutput(schemaPath, format);
 
 export const Generate = ({ schemaPath, format }: GenerateProps) => {
   const { exit } = useApp();
