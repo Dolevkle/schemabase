@@ -6,6 +6,16 @@
   ],
   "rules": {
     "max-statements": "off",
-    "import/consistent-type-specifier-style": "off"
+    "import/consistent-type-specifier-style": "off",
+    "object-shorthand": "error",
+    "no-fallthrough": "off",
+    "prefer-rest-params": "off",
+    "prefer-spread": "off",
+    "func-names": "off",
+    "typescript/no-empty-interface": "off",
+    "typescript/ban-types": "off",
+    "typescript/no-namespace": "off",
+    "unicorn/no-array-reduce": "off",
+    "unicorn/prefer-spread": "off"
   }
 }

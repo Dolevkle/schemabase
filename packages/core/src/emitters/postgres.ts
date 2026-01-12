@@ -55,7 +55,9 @@ const emitOp = (op: Operation): Effect.Effect<string, EmitError> => {
     default: {
       // Should be unreachable if Operation is exhaustive; keeps lint happy.
       return Effect.fail(
-        new EmitError(`Unsupported operation: ${(op as Operation).type}`)
+        new EmitError({
+          message: `Unsupported operation: ${(op as Operation).type}`,
+        })
       );
     }
   }

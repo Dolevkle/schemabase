@@ -6,7 +6,7 @@ import {
 } from "@schemabase/core";
 import { Effect } from "effect";
 import { Text, useApp } from "ink";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 export type GenerateFormat = "sql" | "ir" | "plan";
 

@@ -1,4 +1,4 @@
-import { Effect } from "effect";
+import { Data, Effect } from "effect";
 
 import type {
   Column,
@@ -11,9 +11,9 @@ import type { JsonSchema } from "../schema/types";
 
 import { defaultTableNameFromIdOrTitle, toSnakeCase } from "./naming";
 
-export class CompileError extends Error {
-  override name = "CompileError";
-}
+export class CompileError extends Data.TaggedError("CompileError")<{
+  message: string;
+}> {}
 
 const schemaType = (schema: JsonSchema): string | undefined => {
   const t = schema.type;
@@ -87,9 +87,9 @@ const compileTable = (
   const t = schemaType(schema);
   if (t !== "object") {
     return Effect.fail(
-      new CompileError(
-        `Top-level schema must be an object (got ${t ?? "unknown"})`
-      )
+      new CompileError({
+        message: `Top-level schema must be an object (got ${t ?? "unknown"})`,
+      })
     );
   }
 
@@ -118,7 +118,9 @@ const compileTable = (
 
   if (columns.length === 0) {
     return Effect.fail(
-      new CompileError("Schema has no properties to infer columns from.")
+      new CompileError({
+        message: "Schema has no properties to infer columns from.",
+      })
     );
   }
 
