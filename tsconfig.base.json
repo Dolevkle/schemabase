@@ -8,11 +8,6 @@
     "skipLibCheck": true,
     "noEmit": true,
     "types": ["bun-types"],
-    "plugins": [
-      {
-        "name": "@effect/language-service"
-      }
-    ],
     "exactOptionalPropertyTypes": true,
     "noUnusedLocals": true,
     "noFallthroughCasesInSwitch": true,
