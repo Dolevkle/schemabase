@@ -28,7 +28,7 @@ source ~/.zshrc
 ## Usage
 
 ```
-schemabase generate <schema.json> [--format sql|ir|plan] [--db postgres]
+schemabase generate <path> [--format sql|ir] [--db postgres] [--out file]
 ```
 
 ### Commands
@@ -38,15 +38,16 @@ schemabase generate <schema.json> [--format sql|ir|plan] [--db postgres]
 Generate database schema from a JSON Schema file.
 
 ```bash
-schemabase generate <schema.json> [options]
+schemabase generate <path> [options]
 ```
 
 ### Options
 
 | Option     | Description                           | Default    |
 | ---------- | ------------------------------------- | ---------- |
-| `--format` | Output format: `sql`, `ir`, or `plan` | `sql`      |
+| `--format` | Output format: `sql` or `ir`          | `sql`      |
 | `--db`     | Target database                       | `postgres` |
+| `--out`    | Write output to file (instead stdout) | stdout     |
 
 ### Examples
 
@@ -57,11 +58,11 @@ schemabase generate schema.json
 # Generate Intermediate Representation
 schemabase generate schema.json --format ir
 
-# Generate Migration Plan
-schemabase generate schema.json --format plan
+# Generate all schemas in a directory
+schemabase generate schemas/
 
 # Save to file
-schemabase generate schema.json > migration.sql
+schemabase generate schemas/ --out init.sql
 ```
 
 ## Output Formats
@@ -88,19 +89,6 @@ JSON representation of the database schema:
   "tables": [...],
   "foreignKeys": [],
   "enums": []
-}
-```
-
-### Plan (Migration Plan)
-
-JSON representation of operations to perform:
-
-```json
-{
-  "operations": [
-    { "type": "CreateTable", ... },
-    { "type": "CreateIndex", ... }
-  ]
 }
 ```
 

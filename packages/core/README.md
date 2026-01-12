@@ -14,15 +14,13 @@ bun add @schemabase/core
 import {
   loadJsonSchemaFile,
   compileJsonSchemaToIR,
-  buildPlan,
   PostgresEmitter,
 } from "@schemabase/core";
 
 // Load and compile a schema
 const schema = await loadJsonSchemaFile("./user.json");
-const ir = compileJsonSchemaToIR(schema, { file: "./user.json" });
-const plan = buildPlan(ir);
-const sql = PostgresEmitter.emit(plan);
+const model = await compileJsonSchemaToIR(schema, { file: "./user.json" });
+const sql = PostgresEmitter.emit(model);
 console.log(sql);
 ```
 
@@ -42,40 +40,43 @@ const schema = await loadJsonSchemaFile("./schema.json");
 
 ### Compilation
 
-#### `compileJsonSchemaToIR(schema: JsonSchema, opts: CompileOptions): RelationalIR`
+#### `compileJsonSchemaToIR(schema: JsonSchema, opts: CompileOptions): Promise<RelationalIR>`
 
 Compiles a JSON Schema into a Relational Intermediate Representation (IR).
 
 ```typescript
 import { compileJsonSchemaToIR } from "@schemabase/core";
 
-const ir = compileJsonSchemaToIR(schema, { file: "./schema.json" });
+const ir = await compileJsonSchemaToIR(schema, { file: "./schema.json" });
 // Returns: { tables: [...], foreignKeys: [...], enums: [...] }
 ```
 
-### Plan Building
+#### `compileJsonSchemasToIR(schemas: Array<{ path: string; schema: JsonSchema }>): Promise<RelationalIR>`
 
-#### `buildPlan(ir: RelationalIR): MigrationPlan`
-
-Converts an IR into a migration plan with ordered operations.
+Compile multiple schema files (directory mode). This enables cross-file `$ref` foreign keys:
 
 ```typescript
-import { buildPlan } from "@schemabase/core";
+import { compileJsonSchemasToIR, loadJsonSchemaFile } from "@schemabase/core";
 
-const plan = buildPlan(ir);
-// Returns: { operations: [{ type: "CreateTable", ... }, { type: "CreateIndex", ... }] }
+const userPath = "/abs/schemas/user.json";
+const postPath = "/abs/schemas/post.json";
+
+const model = await compileJsonSchemasToIR([
+  { path: userPath, schema: await loadJsonSchemaFile(userPath) },
+  { path: postPath, schema: await loadJsonSchemaFile(postPath) },
+]);
 ```
 
 ### SQL Emission
 
-#### `PostgresEmitter.emit(plan: MigrationPlan): string`
+#### `PostgresEmitter.emit(model: RelationalIR): string`
 
-Emits PostgreSQL DDL statements from a migration plan.
+Emits PostgreSQL DDL statements from the compiled relational model.
 
 ```typescript
 import { PostgresEmitter } from "@schemabase/core";
 
-const sql = PostgresEmitter.emit(plan);
+const sql = PostgresEmitter.emit(model);
 // Returns SQL string
 ```
 
@@ -96,6 +97,7 @@ interface JsonSchema {
     index?: boolean;
     table?: string;
     column?: string;
+    primaryKey?: string[];
   };
 }
 ```
@@ -118,7 +120,12 @@ interface Table {
 
 interface Column {
   name: string;
-  type: ScalarType; // "uuid" | "text" | "int4" | "float8" | "bool" | "timestamptz"
+  type: {
+    jsonType: "string" | "integer" | "number" | "boolean" | "object" | "array";
+    format?: string;
+    enum?: string[];
+    ref?: string;
+  };
   nullable: boolean;
   primaryKey?: boolean;
 }
@@ -128,27 +135,6 @@ interface Index {
   table: string;
   columns: string[];
   unique: boolean;
-}
-```
-
-### MigrationPlan
-
-```typescript
-interface MigrationPlan {
-  operations: Operation[];
-}
-
-type Operation = CreateTableOp | CreateIndexOp;
-
-interface CreateTableOp {
-  type: "CreateTable";
-  table: string;
-  columns: Column[];
-}
-
-interface CreateIndexOp {
-  type: "CreateIndex";
-  index: Index;
 }
 ```
 

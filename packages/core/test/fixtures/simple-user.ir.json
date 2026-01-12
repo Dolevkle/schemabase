@@ -1,24 +1,41 @@
 {
+  "enums": [],
+  "foreignKeys": [],
   "tables": [
     {
-      "name": "users",
       "columns": [
-        { "name": "id", "type": "uuid", "nullable": false, "primaryKey": true },
-        { "name": "email", "type": "text", "nullable": false },
-        { "name": "name", "type": "text", "nullable": true },
-        { "name": "created_at", "type": "timestamptz", "nullable": true }
+        {
+          "name": "id",
+          "nullable": false,
+          "primaryKey": true,
+          "type": { "format": "uuid", "jsonType": "string" }
+        },
+        {
+          "name": "email",
+          "nullable": false,
+          "type": { "format": "email", "jsonType": "string" }
+        },
+        {
+          "name": "name",
+          "nullable": true,
+          "type": { "jsonType": "string" }
+        },
+        {
+          "name": "created_at",
+          "nullable": true,
+          "type": { "format": "date-time", "jsonType": "string" }
+        }
       ],
       "indexes": [
         {
+          "columns": ["email"],
           "name": "users_email_uidx",
           "table": "users",
-          "columns": ["email"],
           "unique": true
         }
       ],
+      "name": "users",
       "provenance": { "file": "simple-user.json", "pointer": "/" }
     }
-  ],
-  "foreignKeys": [],
-  "enums": []
+  ]
 }

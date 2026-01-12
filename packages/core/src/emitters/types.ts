@@ -1,4 +1,4 @@
-import type { MigrationPlan } from "../plan/types";
+import type { RelationalIR } from "../ir/types";
 
 export interface EmitOptions {
   dialect: string;
@@ -15,5 +15,5 @@ export class EmitError extends Error {
 
 export interface SqlEmitter {
   dialect: string;
-  emit(plan: MigrationPlan): string;
+  emit(model: RelationalIR): string;
 }

@@ -1,5 +1,5 @@
 #!/usr/bin/env bun
-import { render } from "ink";
+import { Box, Text, render } from "ink";
 
 import {
   Generate,
@@ -7,25 +7,32 @@ import {
   type GenerateFormat,
 } from "./commands/generate";
 
+const LOGO = [
+  "█▀▀ █▀▀█ █  █ █▀▀ █▀▄▀█ █▀▀█ █▀▀▄ █▀▀█ █▀▀ █▀▀",
+  "▀▀█ █    █▀▀█ █▀▀ █ ▀ █ █▄▄█ █▀▀▄ █▄▄█ ▀▀█ █▀▀",
+  "▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀ ▀   ▀ ▀  ▀ ▀▀▀  ▀  ▀ ▀▀▀ ▀▀▀",
+] as const;
+
 type ParsedArgs =
   | { help: true }
   | {
       db: "postgres";
       format: GenerateFormat;
       help: false;
+      out?: string;
       schemaPath: string;
     };
 
 const HELP_TEXT = [
-  "schemabase",
+  ...LOGO,
   "",
   "Usage:",
-  "  schemabase generate <schema.json> [--format sql|ir|plan] [--db postgres]",
+  "  schemabase generate <path> [--format sql|ir] [--db postgres] [--out file]",
   "",
   "Examples:",
   "  schemabase generate schema.json",
+  "  schemabase generate schemas/ --out init.sql",
   "  schemabase generate schema.json --format ir",
-  "  schemabase generate schema.json --format plan",
   "",
 ].join("\n");
 
@@ -33,7 +40,7 @@ const isHelp = (cmd: string | undefined) =>
   !cmd || cmd === "-h" || cmd === "--help";
 
 const parseFormat = (v: string | undefined): GenerateFormat | undefined => {
-  if (v === "sql" || v === "ir" || v === "plan") {
+  if (v === "sql" || v === "ir") {
     return v;
   }
   return undefined;
@@ -75,6 +82,7 @@ const parseArgs = (argv: string[]): ParsedArgs => {
   const flags = parseFlags(rest);
   const rawFormat = flags.get("--format");
   const rawDb = flags.get("--db");
+  const out = flags.get("--out");
 
   const parsedFormat = rawFormat ? parseFormat(rawFormat) : undefined;
   const parsedDb = rawDb ? parseDb(rawDb) : undefined;
@@ -90,6 +98,7 @@ const parseArgs = (argv: string[]): ParsedArgs => {
     db: parsedDb ?? "postgres",
     format: parsedFormat ?? "sql",
     help: false,
+    ...(out ? { out } : {}),
     schemaPath,
   };
 };
@@ -100,9 +109,29 @@ if (args.help) {
   process.exit(0);
 }
 
+if (args.out) {
+  try {
+    const outText = await generateText(args.schemaPath, args.format);
+    await Bun.write(args.out, outText);
+    process.stdout.write(`Wrote ${args.out}\n`);
+    process.exit(0);
+  } catch (error) {
+    process.stderr.write(`Error: ${String(error)}\n`);
+    process.exit(1);
+  }
+}
+
 if (process.stdout.isTTY) {
   render(
-    <Generate schemaPath={args.schemaPath} format={args.format} db={args.db} />
+    <Box flexDirection="column">
+      <Text>{LOGO.join("\n")}</Text>
+      <Text> </Text>
+      <Generate
+        schemaPath={args.schemaPath}
+        format={args.format}
+        db={args.db}
+      />
+    </Box>
   );
 } else {
   try {

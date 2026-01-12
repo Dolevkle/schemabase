@@ -17,6 +17,11 @@ export interface JsonSchema {
     index?: boolean;
     table?: string;
     column?: string;
+    /**
+     * Table-level composite primary key (for junction tables).
+     * Property names are the JSON property names (not snake_cased).
+     */
+    primaryKey?: string[];
   };
   [key: string]: unknown;
 }
