@@ -136,6 +136,11 @@ const InteractiveApp = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [, setNextId] = useState(0);
 
+  // Command history for up/down navigation
+  const [commandHistory, setCommandHistory] = useState<string[]>([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
+  const [savedInput, setSavedInput] = useState("");
+
   const addToHistory = useCallback(
     (text: string, type: OutputEntry["type"]) => {
       setNextId((prev) => {
@@ -153,6 +158,11 @@ const InteractiveApp = () => {
       if (!trimmed) {
         return;
       }
+
+      // Add to command history and reset navigation state
+      setCommandHistory((prev) => [...prev, trimmed]);
+      setHistoryIndex(-1);
+      setSavedInput("");
 
       setInput("");
       addToHistory(`> ${trimmed}`, "command");
@@ -210,9 +220,39 @@ const InteractiveApp = () => {
     [addToHistory]
   );
 
-  useInput((input, key) => {
-    if (key.ctrl && input === "c") {
+  useInput((_, key) => {
+    if (key.ctrl && _ === "c") {
       process.exit(0);
+    }
+
+    // Navigate command history with up/down arrows
+    if (key.upArrow && commandHistory.length > 0 && !isProcessing) {
+      if (historyIndex === -1) {
+        // Starting to browse history, save current input
+        setSavedInput(input);
+        const newIndex = commandHistory.length - 1;
+        setHistoryIndex(newIndex);
+        setInput(commandHistory[newIndex] ?? "");
+      } else if (historyIndex > 0) {
+        // Go further back in history
+        const newIndex = historyIndex - 1;
+        setHistoryIndex(newIndex);
+        setInput(commandHistory[newIndex] ?? "");
+      }
+    }
+
+    if (key.downArrow && historyIndex !== -1 && !isProcessing) {
+      if (historyIndex < commandHistory.length - 1) {
+        // Go forward in history
+        const newIndex = historyIndex + 1;
+        setHistoryIndex(newIndex);
+        setInput(commandHistory[newIndex] ?? "");
+      } else {
+        // Reached the end, restore saved input
+        setHistoryIndex(-1);
+        setInput(savedInput);
+        setSavedInput("");
+      }
     }
   });
 
